@@ -1,11 +1,10 @@
 package com.infynyxx.logback.scribe;
 
-import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 import ch.qos.logback.core.AppenderBase;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TSocket;
-import scribe.thrift.scribe.*;
+import scribe.thrift.Scribe;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -36,7 +35,7 @@ public class ScribeAppender<E> extends AppenderBase<E> {
             TSocket socket = new TSocket(scribeHost, scribePort);
             transport = new TFramedTransport(socket);
             TBinaryProtocol protocol = new TBinaryProtocol(transport, false, false);
-            Client client = new Client(protocol, protocol);
+            Scribe.Client client = new Scribe.Client(protocol, protocol);
 
             addInfo("Opening transport socket");
             transport.open();

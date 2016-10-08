@@ -3,7 +3,7 @@ package com.infynyxx.logback.scribe;
 import org.apache.thrift.TException;
 import scribe.thrift.LogEntry;
 import scribe.thrift.ResultCode;
-import scribe.thrift.scribe.*;
+import scribe.thrift.Scribe;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,13 +13,13 @@ import java.util.List;
  */
 public class AppenderExecutor<E> {
 
-    private final Client client;
+    private final Scribe.Client client;
     private final ScribeConverter converter;
     private final String category;
 
     private List<LogEntry> logEntries = new ArrayList<LogEntry>();
 
-    public AppenderExecutor(Client client, ScribeConverter converter, String category) {
+    public AppenderExecutor(Scribe.Client client, ScribeConverter converter, String category) {
         this.client = client;
         this.converter = converter;
         this.category = category;
