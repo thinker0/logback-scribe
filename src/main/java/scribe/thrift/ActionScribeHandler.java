@@ -7,11 +7,11 @@ package scribe.thrift;
 
 import com.facebook.fb303.fb_status;
 import org.apache.thrift.TException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * A class to extend in ruby. We will simply implement "action"
@@ -21,7 +21,7 @@ import java.util.logging.Logger;
  */
 public class ActionScribeHandler implements Scribe.Iface {
     int inFlightMsgs;
-    Logger logger = Logger.getLogger(this.getClass().toString());
+    Logger logger = LoggerFactory.getLogger(this.getClass().toString());
     int MAX_IN_FLIGHT_MSGS;
     fb_status status;
 
@@ -46,27 +46,27 @@ public class ActionScribeHandler implements Scribe.Iface {
 
         // Throttling. we don't care about race conditions, it's quite all right to miss our target
         if (this.getStatus().equals(fb_status.STOPPING)) {
-            logger.warning("Rejecting messages, server is stopping");
+            logger.warn("Rejecting messages, server is stopping");
             return ResultCode.TRY_LATER;
         }
 
         if (inFlightMsgs > MAX_IN_FLIGHT_MSGS) {
-            logger.log(Level.WARNING, "Throttling, too many messages in flight", inFlightMsgs);
+            logger.warn("Throttling, too many messages in flight", inFlightMsgs);
             return ResultCode.TRY_LATER;
         }
         long before = System.currentTimeMillis();
-        logger.info(before + " Processing: " + messages.size());
+        logger.debug(before + " Processing: " + messages.size());
         this.inFlightMsgs += messages.size();
         try {
             this.action(messages);
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "Caught exception in messages handler", e);
+            logger.error("Caught exception in messages handler", e);
             return ResultCode.TRY_LATER;
         } finally {
             this.inFlightMsgs -= messages.size();
         }
         long delta = System.currentTimeMillis() - before;
-        logger.info(before + " Done processing: " + messages.size() + ": " + delta + "ms");
+        logger.debug(before + " Done processing: " + messages.size() + ": " + delta + "ms");
         return ResultCode.OK;
     }
 
@@ -124,7 +124,7 @@ public class ActionScribeHandler implements Scribe.Iface {
     }
 
     public void drain() {
-        logger.warning("Stopping handler");
+        logger.warn("Stopping handler");
         status = fb_status.STOPPING;
         for (int i=0; i < 60; i++) {
             if (this.inFlightMsgs == 0) {
@@ -135,7 +135,7 @@ public class ActionScribeHandler implements Scribe.Iface {
             } catch (InterruptedException e) {
             }
         }
-        logger.warning("Timed out waiting for all events to be sent");
+        logger.warn("Timed out waiting for all events to be sent");
     }
     
 }
